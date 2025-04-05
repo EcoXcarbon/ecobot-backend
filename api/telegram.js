@@ -14,13 +14,14 @@ export default async function handler(req, res) {
 
   const chatId = message.chat.id;
   const userText = message.text;
-
   console.log("📩 Message received:", userText);
 
+  // Default reply
   let reply = `You said: ${userText}`;
 
+  // Custom /start reply
   if (userText === "/start") {
-    reply = `Welcome back, Yasir!\nTap below to launch the EcoCoin App:\n\nOpen EcoCoin App:\nhttps://ecocoin.vercel.app`;
+    reply = `👋 Welcome back, Yasir!\n\n🚀 Tap below to launch the EcoCoin App:\n\n🌿 [Open EcoCoin App](https://ecocoin.vercel.app)`;
   }
 
   try {
@@ -29,21 +30,23 @@ export default async function handler(req, res) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: chatId,
-        text: reply
-        // parse_mode: intentionally omitted for full compatibility
+        text: reply,
+        parse_mode: "Markdown",
+        disable_web_page_preview: true,
       }),
     });
 
-    const result = await telegramRes.json();
+    const data = await telegramRes.json();
 
-    if (!result.ok) {
-      console.error("❌ Failed to send message to Telegram:", result);
+    if (!data.ok) {
+      console.error("❌ Failed to send message to Telegram:", data);
     } else {
-      console.log("✅ Telegram message sent:", result);
+      console.log("✅ Message sent to Telegram");
     }
-  } catch (err) {
-    console.error("🚨 Error sending message to Telegram:", err);
-  }
 
-  res.status(200).send("Message processed");
+    res.status(200).send("Message processed");
+  } catch (err) {
+    console.error("❌ Error sending message:", err);
+    res.status(500).send("Server error");
+  }
 }
