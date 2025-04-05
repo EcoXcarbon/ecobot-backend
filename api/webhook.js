@@ -6,14 +6,16 @@ export default async function handler(req, res) {
   }
 
   const { message } = req.body;
-console.log("📩 Received Telegram message:", message);
 
   if (!message || !message.text) {
+    console.log("⚠️ No text in message");
     return res.status(200).send("No message");
   }
 
   const chatId = message.chat.id;
   const userText = message.text;
+
+  console.log("📩 Message received:", userText);
 
   let reply = `You said: ${userText}`;
   if (userText === "/start") {
@@ -30,5 +32,5 @@ console.log("📩 Received Telegram message:", message);
     }),
   });
 
-  res.status(200).send("OK");
+  res.status(200).send("Message sent");
 }
