@@ -16,11 +16,11 @@ export default async function handler(req, res) {
   console.log("📩 Message received:", userText);
   console.log("👤 chat ID:", chatId);
 
-  let reply = `You said: ${userText}`;
+  let reply = `You said: ${userText.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&")}`; // Escape MarkdownV2
 
   if (userText === "/start") {
     reply =
-      "👋 Welcome back, Yasir!\n\n🚀 Tap below to launch the EcoCoin App:\n\n🌿 [Open EcoCoin App](https://ecocoin.vercel.app)";
+      "👋 *Welcome back, Yasir!*\n\n🚀 Tap below to launch the EcoCoin App:\n\n🌿 [Open EcoCoin App](https://ecocoin.vercel.app)";
   }
 
   try {
@@ -34,7 +34,8 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           chat_id: chatId,
           text: reply,
-          parse_mode: "Markdown",
+          parse_mode: "MarkdownV2",
+          disable_web_page_preview: true,
         }),
       }
     );
