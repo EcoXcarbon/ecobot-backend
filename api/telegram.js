@@ -4,38 +4,31 @@ export default async function handler(req, res) {
   }
 
   const { message } = req.body;
-
   if (!message || !message.text) {
-    console.log("⚠️ No text in message or message is undefined.");
+    console.log("⚠️ No message received");
     return res.status(200).send("No message");
   }
 
   const chatId = message.chat.id;
   const userText = message.text;
+  console.log("📩 Incoming:", userText);
 
-  console.log("📩 Message received:", userText);
-  console.log("👤 chat ID:", chatId);
-
-  // Escape all MarkdownV2-sensitive characters
-  const escapeMarkdownV2 = (text) => {
-    return text.replace(/([_*\[\]()~`>#+=|{}.!\\-])/g, "\\$1");
-  };
+  const escapeMarkdownV2 = (text) =>
+    text.replace(/([_*\[\]()~`>#+=|{}.!\\-])/g, "\\$1");
 
   let reply = `You said: ${escapeMarkdownV2(userText)}`;
 
   if (userText === "/start") {
     reply =
-      "👋 *Welcome back, Yasir\\!*\\n\\n🚀 Tap below to launch the EcoCoin App:\\n\\n🌿 [Open EcoCoin App](https://ecocoin.vercel.app)";
+      "👋 *Welcome back, Yasir\\!*\\n\\n🚀 Tap below to launch the EcoCoin App:\\n\\n🌿 [Open EcoCoin App](https://ecocoin\\.vercel\\.app)";
   }
 
   try {
-    const telegramRes = await fetch(
+    const response = await fetch(
       `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chatId,
           text: reply,
@@ -45,12 +38,11 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await telegramRes.json();
-    console.log("📬 Telegram API response:", data);
-
+    const data = await response.json();
+    console.log("📬 Telegram response:", data);
     res.status(200).send("Message processed");
-  } catch (error) {
-    console.error("❌ Error sending message:", error.message);
-    res.status(500).send("Failed to send message");
+  } catch (err) {
+    console.error("❌ Telegram send error:", err.message);
+    res.status(500).send("Failed");
   }
 }
