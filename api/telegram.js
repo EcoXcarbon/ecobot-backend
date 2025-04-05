@@ -3,6 +3,12 @@ export default async function handler(req, res) {
     return res.status(405).send("Method Not Allowed");
   }
 
+  // Verify BOT_TOKEN exists
+  if (!process.env.BOT_TOKEN) {
+    console.error("❌ BOT_TOKEN is not set in environment variables");
+    return res.status(500).send("Server configuration error");
+  }
+
   const { message } = req.body;
 
   if (!message || !message.text) {
@@ -16,11 +22,18 @@ export default async function handler(req, res) {
   console.log("📩 Message received:", userText);
   console.log("👤 chat ID:", chatId);
 
-  let reply = `You said: ${userText.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&")}`; // Escape MarkdownV2
-
+  let reply;
+  
   if (userText === "/start") {
-    reply =
-      "👋 *Welcome back, Yasir!*\n\n🚀 Tap below to launch the EcoCoin App:\n\n🌿 [Open EcoCoin App](https://ecocoin.vercel.app)";
+    reply = [
+      "👋 \\*Welcome back, Yasir\\!\\*",
+      "",
+      "🚀 Tap below to launch the EcoCoin App\\:",
+      "",
+      "🌿 [Open EcoCoin App](https://ecocoin\\.vercel\\.app)"
+    ].join("\n");
+  } else {
+    reply = `You said: ${userText.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&")}`;
   }
 
   try {
@@ -43,9 +56,20 @@ export default async function handler(req, res) {
     const data = await telegramRes.json();
     console.log("📬 Telegram API response:", data);
 
+    if (!data.ok) {
+      console.error("❌ Telegram API error:", data.description || data);
+      return res.status(400).json({
+        error: "Telegram API error",
+        details: data.description || data
+      });
+    }
+
     res.status(200).send("Message processed");
   } catch (error) {
-    console.error("❌ Error sending message:", error.message);
-    res.status(500).send("Failed to send message");
+    console.error("❌ Network/Server error:", error.message);
+    res.status(500).json({
+      error: "Failed to send message",
+      details: error.message
+    });
   }
 }
