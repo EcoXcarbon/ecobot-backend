@@ -1,4 +1,4 @@
-// api/webhook.js
+// api/telegram.js
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -18,8 +18,9 @@ export default async function handler(req, res) {
   console.log("📩 Message received:", userText);
 
   let reply = `You said: ${userText}`;
+
   if (userText === "/start") {
-    reply = `👋 Welcome back, Yasir!\n🚀 Tap below to launch the EcoCoin App:\n\n🌿 [Open EcoCoin App](https://ecocoin.vercel.app)`;
+    reply = `👋 Welcome back, Yasir!\n🚀 Tap below to launch the EcoCoin App:\n\n🌿 Open EcoCoin App: https://ecocoin.vercel.app`;
   }
 
   try {
@@ -29,15 +30,19 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         chat_id: chatId,
         text: reply,
-        parse_mode: "Markdown",
+        parse_mode: "Markdown"
       }),
     });
 
-    if (!telegramRes.ok) {
-      console.error("❌ Failed to send message to Telegram:", await telegramRes.text());
+    const result = await telegramRes.json();
+
+    if (!result.ok) {
+      console.error("❌ Failed to send message to Telegram:", result);
+    } else {
+      console.log("✅ Telegram response sent:", result);
     }
-  } catch (error) {
-    console.error("❌ Telegram sendMessage error:", error);
+  } catch (err) {
+    console.error("🚨 Error sending message to Telegram:", err);
   }
 
   res.status(200).send("Message processed");
