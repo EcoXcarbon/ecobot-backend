@@ -1,9 +1,9 @@
-const getRandomQuestions = require("../utils/questionSelector.js");
-const questions = require("../utils/quizQuestions.js");
+import getRandomQuestions from "../utils/questionSelector.js";
+import questions from "../utils/quizQuestions.js";
 
-const userSessions = {}; // In-memory session tracker
+const userSessions = {}; // Store active quiz sessions
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
   const { message, callback_query } = req.body;
@@ -19,18 +19,14 @@ module.exports = async function handler(req, res) {
     }
 
     const currentQ = session.questions[session.current];
-    console.log("✅ Answer Received:", data);
+    console.log("✅ Answer received:", data);
 
-    if (data === currentQ.answer) {
-      session.score += 5;
-    }
-
+    if (data === currentQ.answer) session.score += 5;
     session.current++;
 
     if (session.current >= session.questions.length) {
       const reply = `✅ *Quiz Completed!*\n\n🎯 Your Score: *${session.score}*/25\n\n🚀 Submit your score in the EcoCoin App to claim rewards!`;
       delete userSessions[chatId];
-
       await sendMessage(chatId, reply, true);
     } else {
       await sendQuestion(chatId, session);
@@ -68,7 +64,7 @@ module.exports = async function handler(req, res) {
   }
 
   return res.status(200).send("Message processed");
-};
+}
 
 async function sendMessage(chatId, text, markdown = false) {
   const body = {
