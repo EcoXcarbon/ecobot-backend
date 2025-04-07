@@ -1,44 +1,19 @@
-import admin from "../../utils/firebaseAdmin.js";
+import admin from "firebase-admin";
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ success: false, message: "Method Not Allowed" });
-  }
+const privateKeyBase64 = process.env.FIREBASE_ADMIN_KEY;
 
-  const { password, filter } = req.body;
-
-  if (password !== process.env.ADMIN_PASSWORD) {
-    return res.status(401).json({ success: false, message: "Invalid password" });
-  }
-
-  try {
-    const db = admin.firestore();
-    const snapshot = await db.collection("submissions").get();
-
-    let results = [];
-
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-
-      let match = true;
-
-      if (filter && typeof filter === "object") {
-        for (let key of Object.keys(filter)) {
-          if (data[key] !== filter[key]) {
-            match = false;
-            break;
-          }
-        }
-      }
-
-      if (match) {
-        results.push({ id: doc.id, ...data });
-      }
-    });
-
-    return res.status(200).json({ success: true, data: results });
-  } catch (error) {
-    console.error("❌ Error filtering records:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
-  }
+if (!privateKeyBase64) {
+  throw new Error("❌ FIREBASE_ADMIN_KEY environment variable not set.");
 }
+
+const serviceAccount = JSON.parse(
+  Buffer.from(privateKeyBase64, "base64").toString("utf8")
+);
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
+
+export default admin;
