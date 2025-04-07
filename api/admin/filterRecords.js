@@ -1,4 +1,3 @@
-// api/admin/filterRecords.js
 import db from "../../utils/firebaseAdmin.js";
 
 export default async function handler(req, res) {
@@ -14,13 +13,12 @@ export default async function handler(req, res) {
 
   try {
     const snapshot = await db.collection("submissions").get();
-
     let results = [];
 
     snapshot.forEach((doc) => {
       const data = doc.data();
-
       let match = true;
+
       if (filter && typeof filter === "object") {
         for (let key of Object.keys(filter)) {
           if (data[key] !== filter[key]) {
@@ -40,7 +38,7 @@ export default async function handler(req, res) {
     console.error("❌ Error filtering records:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Internal Server Error",
       error: error.message,
     });
   }
