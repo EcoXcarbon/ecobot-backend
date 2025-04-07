@@ -1,23 +1,44 @@
-import admin from "../../utils/firebaseAdmin.js";
+import admin from "@/utils/firebaseAdmin";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+  if (req.method !== "POST") {
+    return res.status(405).json({ success: false, message: "Method Not Allowed" });
+  }
 
-  const { password, filters } = req.body;
-  if (password !== process.env.ADMIN_PASSWORD) return res.status(401).json({ success: false, message: "Unauthorized" });
+  const { password, filter } = req.body;
 
-  const db = admin.firestore();
-  let query = db.collection("carbon-submissions");
-
-  if (filters.userId) query = query.where("userId", "==", filters.userId);
-  if (filters.assetType) query = query.where("type", "==", filters.assetType);
-  if (filters.verified !== undefined) query = query.where("verified", "==", filters.verified);
+  if (password !== process.env.ADMIN_PASSWORD) {
+    return res.status(401).json({ success: false, message: "Invalid password" });
+  }
 
   try {
-    const snapshot = await query.get();
-    const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.status(200).json({ success: true, records: results });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error fetching records", error: err.message });
+    const db = admin.firestore();
+    const snapshot = await db.collection("submissions").get();
+
+    let results = [];
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+
+      let match = true;
+
+      if (filter && typeof filter === "object") {
+        for (let key of Object.keys(filter)) {
+          if (data[key] !== filter[key]) {
+            match = false;
+            break;
+          }
+        }
+      }
+
+      if (match) {
+        results.push({ id: doc.id, ...data });
+      }
+    });
+
+    return res.status(200).json({ success: true, data: results });
+  } catch (error) {
+    console.error("❌ Error filtering records:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
