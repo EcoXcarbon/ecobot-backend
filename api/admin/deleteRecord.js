@@ -1,3 +1,4 @@
+// api/admin/deleteRecord.js
 import db from "@/utils/firebaseAdmin";
 
 export default async function handler(req, res) {
@@ -7,27 +8,25 @@ export default async function handler(req, res) {
 
   const { password, id } = req.body;
 
-  if (!password || !id) {
-    return res.status(400).json({ success: false, message: "Missing password or ID" });
-  }
-
   if (password !== process.env.ADMIN_PASSWORD) {
     return res.status(401).json({ success: false, message: "Invalid password" });
   }
 
+  if (!id) {
+    return res.status(400).json({ success: false, message: "Missing document ID" });
+  }
+
   try {
-    const ref = db.collection("bonus_claims").doc(id);
-    const doc = await ref.get();
+    await db
+      .collection("bonus_claims")
+      .doc("treeSubmissions")
+      .collection("treeSubmissions")
+      .doc(id)
+      .delete();
 
-    if (!doc.exists) {
-      return res.status(404).json({ success: false, message: "Record not found" });
-    }
-
-    await ref.delete();
-
-    return res.status(200).json({ success: true, message: "Record deleted successfully" });
+    return res.status(200).json({ success: true, message: `Deleted ${id} from treeSubmissions` });
   } catch (error) {
-    console.error("Delete error:", error);
-    return res.status(500).json({ success: false, message: "Server error", error: error.message });
+    console.error("❌ Delete error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
   }
 }
