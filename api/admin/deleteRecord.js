@@ -17,15 +17,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    const nestedPath = db.doc(`bonus_claims/treeSubmissions/${id}`);
-    const flatPath = db.doc(`treeSubmissions/${id}`);
+    const nestedPath = db.collection("bonus_claims").doc("treeSubmissions").collection("treeSubmissions").doc(id);
+    const flatPath = db.collection("treeSubmissions").doc(id);
 
     await nestedPath.delete();
     await flatPath.delete();
 
     return res.status(200).json({ success: true, message: `Deleted document ${id}` });
   } catch (error) {
-    console.error("❌ Deletion failed:", error);
-    return res.status(500).json({ error: "Failed to delete record" });
+    console.error("❌ Deletion error:", error.message);
+    return res.status(500).json({ error: "Failed to delete document" });
   }
 }
