@@ -17,13 +17,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Deleting from nested path: bonus_claims/treeSubmissions/{id}
-    const docRef = db.doc(`bonus_claims/treeSubmissions/${id}`);
-    await docRef.delete();
+    const nestedPath = db.doc(`bonus_claims/treeSubmissions/${id}`);
+    const flatPath = db.doc(`treeSubmissions/${id}`);
 
-    return res.status(200).json({ success: true, message: `Deleted ${id}` });
+    await nestedPath.delete();
+    await flatPath.delete();
+
+    return res.status(200).json({ success: true, message: `Deleted document ${id}` });
   } catch (error) {
-    console.error("❌ Firestore delete error:", error);
+    console.error("❌ Deletion failed:", error);
     return res.status(500).json({ error: "Failed to delete record" });
   }
 }
