@@ -1,4 +1,4 @@
-import db from "@/utils/firebaseAdmin";
+import db from "../../utils/firebaseAdmin.js"; // ✅ fixed import path
 
 export default async function handler(req, res) {
   console.log("📩 Delete request received");
