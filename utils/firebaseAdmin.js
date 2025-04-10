@@ -1,19 +1,23 @@
-// utils/firebaseAdmin.js
-import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import admin from "firebase-admin";
 
-// Decode base64 service account from Vercel env
+// Decode base64 Firebase Admin credentials
+const privateKeyBase64 = process.env.FIREBASE_ADMIN_KEY;
+
+if (!privateKeyBase64) {
+  throw new Error("❌ FIREBASE_ADMIN_KEY environment variable not set.");
+}
+
 const serviceAccount = JSON.parse(
-  Buffer.from(process.env.FIREBASE_ADMIN_KEY, "base64").toString("utf8")
+  Buffer.from(privateKeyBase64, "base64").toString("utf8")
 );
 
-// Initialize Firebase Admin
-if (!getApps().length) {
-  initializeApp({
-    credential: cert(serviceAccount),
+// Initialize once
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
   });
 }
 
-// Export initialized Firestore instance
-const db = getFirestore();
+// Export db directly
+const db = admin.firestore();
 export default db;
