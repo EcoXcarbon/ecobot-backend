@@ -1,5 +1,4 @@
-// /api/admin/deleteRecord.js
-import db from "@/utils/firebaseAdmin";
+import db from "../../utils/firebaseAdmin.js";
 
 export default async function handler(req, res) {
   try {
@@ -18,7 +17,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, message: "Missing ID" });
     }
 
-    const docRef = db.collection("bonus_claims").doc("treeSubmissions").collection("treeSubmissions").doc(id);
+    const docRef = db
+      .collection("bonus_claims")
+      .doc("treeSubmissions")
+      .collection("treeSubmissions")
+      .doc(id);
+
     const doc = await docRef.get();
 
     if (!doc.exists) {
@@ -28,7 +32,7 @@ export default async function handler(req, res) {
     await docRef.delete();
     return res.status(200).json({ success: true, message: `Deleted document ${id}` });
   } catch (error) {
-    console.error("Delete Record Error:", error.message);
-    return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    console.error("🔥 Delete error:", error.message);
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 }
